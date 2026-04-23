@@ -20,32 +20,14 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
-
-    - name: Create Gradle Wrapper
-      run: |
-        mkdir -p gradle/wrapper
-        cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
-        EOF
-        curl -sL https://raw.githubusercontent.com/nicekid1/sunmi-printer-server/main/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar || \
-        curl -sL https://github.com/nicekid1/sunmi-printer-server/raw/main/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar || \
-        curl -sL https://repo.gradle.org/artifactory/libs-releases/org/gradle/gradle-wrapper/8.4/gradle-wrapper-8.4.jar -o gradle/wrapper/gradle-wrapper.jar
-        cat > gradlew << 'SCRIPT'
-        #!/bin/sh
-        APP_HOME="$(cd "$(dirname "$0")" && pwd)"
-        exec java -classpath "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain "$@"
-        SCRIPT
-        chmod +x gradlew
+      with:
+        gradle-version: '8.4'
 
     - name: Create local.properties
       run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: gradle assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
