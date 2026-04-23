@@ -12,25 +12,43 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '11'
         distribution: 'temurin'
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
-        gradle-version: '8.4'
+        gradle-version: '7.5.1'
 
-    - name: Create local.properties
-      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+    - name: Extract and prepare project
+      run: |
+        unzip SunmiPrinterDemo-master.zip -d temp_project
+        # Find the actual project root (contains settings.gradle or build.gradle)
+        PROJECT_DIR=$(find temp_project -name "settings.gradle" -o -name "build.gradle" | head -1 | xargs dirname)
+        echo "Project dir: $PROJECT_DIR"
+        ls -la "$PROJECT_DIR"
+        echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
+    - name: Show project structure
+      run: |
+        echo "=== Root files ==="
+        ls -la "$PROJECT_DIR"
+        echo "=== App dir ==="
+        ls -la "$PROJECT_DIR/app" || echo "No app dir"
+        echo "=== build.gradle content ==="
+        cat "$PROJECT_DIR/build.gradle" || echo "No build.gradle"
 
     - name: Build Debug APK
-      run: gradle assembleDebug --stacktrace
+      run: |
+        cd "$PROJECT_DIR"
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+        gradle assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: pos-printer-apk
-        path: app/build/outputs/apk/debug/*.apk
+        name: sunmi-demo-apk
+        path: temp_project/**/app/build/outputs/apk/debug/*.apk
