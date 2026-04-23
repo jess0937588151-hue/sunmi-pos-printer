@@ -18,37 +18,20 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '7.5.1'
-
-    - name: Extract and prepare project
+    - name: Extract project
       run: |
         unzip SunmiPrinterDemo-master.zip -d temp_project
-        # Find the actual project root (contains settings.gradle or build.gradle)
-        PROJECT_DIR=$(find temp_project -name "settings.gradle" -o -name "build.gradle" | head -1 | xargs dirname)
-        echo "Project dir: $PROJECT_DIR"
-        ls -la "$PROJECT_DIR"
-        echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
-
-    - name: Show project structure
-      run: |
-        echo "=== Root files ==="
-        ls -la "$PROJECT_DIR"
-        echo "=== App dir ==="
-        ls -la "$PROJECT_DIR/app" || echo "No app dir"
-        echo "=== build.gradle content ==="
-        cat "$PROJECT_DIR/build.gradle" || echo "No build.gradle"
+        ls -la temp_project/SunmiPrinterDemo-master/
 
     - name: Build Debug APK
       run: |
-        cd "$PROJECT_DIR"
+        cd temp_project/SunmiPrinterDemo-master
         echo "sdk.dir=$ANDROID_HOME" > local.properties
-        gradle assembleDebug --stacktrace
+        chmod +x gradlew
+        ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: sunmi-demo-apk
-        path: temp_project/**/app/build/outputs/apk/debug/*.apk
+        path: temp_project/SunmiPrinterDemo-master/app/build/outputs/apk/debug/*.apk
